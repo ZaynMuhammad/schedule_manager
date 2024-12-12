@@ -22,10 +22,10 @@ export async function createUser({
 }
 
 export async function getUser(userId: UserId) {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
-
-  return user;
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+  
+    return user;
 }
   
