@@ -10,7 +10,7 @@ import {
   export const users = pgTable('users', {
     id: uuid('id').primaryKey().defaultRandom(),
     email: varchar('email', { length: 255 }).unique().notNull(),
-    name: varchar('name', { length: 255 }).notNull(),
+    username: varchar('name', { length: 255 }).notNull(),
     password: text('password').notNull(),
     timezone: varchar('timezone', { length: 50 }).default('UTC').notNull(),
     createdAt: timestamp('created_at')
