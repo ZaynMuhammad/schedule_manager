@@ -12,12 +12,29 @@ export default function SignUpPage() {
     email: "",
     username: "",
     password: "",
-    timezone: "America/New_York"
+    timezone: "America/New_York",
+    startTime: "",
+    endTime: ""
   })
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
+  };
+
+  const getEndTimeOptions = () => {
+    if (!user.startTime) return [];
+    const times = [];
+    const [startHour] = user.startTime.split(':').map(Number);
+    
+    for (let i = startHour + 1; i <= 23; i++) {
+      const time = `${i.toString().padStart(2, '0')}:00`;
+      times.push(time);
+    }
+    if (startHour !== 23) {
+      times.push('00:00');
+    }
+    return times;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,7 +49,9 @@ export default function SignUpPage() {
           email: user.email,
           username: user.username,
           password: user.password,
-          timezone: user.timezone
+          timezone: user.timezone,
+          startTime: user.startTime,
+          endTime: user.endTime
         }),
       });
 
@@ -94,6 +113,37 @@ export default function SignUpPage() {
               </option>
             ))}
           </select>
+          <div className="flex gap-4">
+            <select
+              name="startTime"
+              value={user.startTime}
+              onChange={handleChange}
+              className="w-1/2 p-2 border rounded text-black"
+              required
+            >
+              <option value="">Start Time</option>
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={`${i.toString().padStart(2, '0')}:00`}>
+                  {`${i.toString().padStart(2, '0')}:00`}
+                </option>
+              ))}
+            </select>
+            <select
+              name="endTime"
+              value={user.endTime}
+              onChange={handleChange}
+              className="w-1/2 p-2 border rounded text-black"
+              disabled={!user.startTime}
+              required
+            >
+              <option value="">End Time</option>
+              {getEndTimeOptions().map(time => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
           <button 
             type="submit"
             className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"

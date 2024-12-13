@@ -5,6 +5,7 @@ interface Meeting {
   title: string
   startTime: Date
   endTime: Date
+  timezone: string
 }
 
 interface MeetingsState {
@@ -19,6 +20,7 @@ export const createMeeting = createAsyncThunk(
     title: string;
     startTime: Date;
     endTime: Date;
+    timezone: string;
     participants: string[];
   }) => {
     const token = localStorage.getItem('token');
@@ -30,7 +32,17 @@ export const createMeeting = createAsyncThunk(
       },
       body: JSON.stringify(meeting),
     });
-    return response.json();
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw {
+        error: data.error || 'Failed to create meeting',
+        status: response.status
+      };
+    }
+    
+    return data;
   }
 )
 

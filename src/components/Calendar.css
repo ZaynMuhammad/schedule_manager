@@ -34,4 +34,18 @@
 /* Time slots */
 .rbc-timeslot-group {
   border-bottom: 1px solid #e5e7eb;
+}
+
+.meetings-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.meeting-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #3b82f6;
 } 

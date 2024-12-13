@@ -3,6 +3,8 @@ import { meetings, meetingParticipants } from '@/db/schema';
 import { NextResponse } from 'next/server';
 import { eq, desc, or, exists, and } from 'drizzle-orm';
 import { verifyToken } from '@/utils/jwt';
+import { isWithinWorkingHours } from '@/utils/timezone';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(request: Request) {
   try {
@@ -16,16 +18,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { title, description, startTime, endTime, participants } = await request.json();
+    const { title, description, startTime, endTime, timezone, participants } = await request.json();
     const organizerId = payload.userId;
 
-    // Create meeting
+    // Check working hours but don't block the creation
+    const validation = isWithinWorkingHours(new Date(startTime), new Date(endTime), timezone);
+    
+    // Create meeting with timezone
     const [meeting] = await db.insert(meetings)
       .values({
         title,
         description,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
+        timezone,
         organizerId,
       })
       .returning();
@@ -41,7 +47,7 @@ export async function POST(request: Request) {
           }))
         );
     }
-
+    
     return NextResponse.json(meeting, { status: 201 });
   } catch (error) {
     console.error('Error creating meeting:', error);

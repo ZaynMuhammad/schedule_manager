@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { validateMeetingTime } from '@/utils/timezone';
-import { formatInTimeZone } from 'date-fns-tz';
+import { format, formatInTimeZone } from 'date-fns-tz';
+import { DateTime } from 'luxon';
 
 interface User {
   id: string;
@@ -19,7 +20,7 @@ interface MeetingModalProps {
   endTime: Date;
 }
 
-export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, endTime }: MeetingModalProps) {
+export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, endTime, userTimezone }: MeetingModalProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [title, setTitle] = useState('');
@@ -45,16 +46,42 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
     }
   }, [isOpen, startTime]);
 
-  const formatTimeForUser = (date: Date, timezone: string) => {
-    return formatInTimeZone(date, timezone, 'h:mm a');
-  };
+  // Super hacky way to adjust the time for the user's timezone, but it works for now
+  function adjustTimeForEST(date: Date, timezone: string): Date {
+    const est = 'America/New_York';
+    // Get the offset difference between timezones
+    const estOffset = DateTime.now().setZone(est).offset;
+    const userOffset = DateTime.now().setZone(timezone).offset;
+    const diffMinutes = userOffset - estOffset;
+    
+    // Add or subtract the difference from EST time
+    // If user is ahead of EST, subtract the difference
+    // If user is behind EST, add the difference
+    return new Date(date.getTime() - (diffMinutes * 60 * 1000));
+  }
+
+  function convertTimeIfDifferentTimeZone(user: User, timezone: string) {
+    if (timezone !== user.timezone) {
+        if (user.timezone === 'America/New_York' || user.timezone === 'America/Toronto') {
+            console.log("the timezone is", user.timezone);
+            const adjustedStart = adjustTimeForEST(new Date(startTime), userTimezone);
+            const adjustedEnd = adjustTimeForEST(new Date(endTime), userTimezone);
+            
+            return `${user.username} (${user.timezone}) - Local time: ${format(adjustedStart, 'HH:mm')} - ${format(adjustedEnd, 'HH:mm')}`
+            
+        }
+      return `${user.username} (${user.timezone}) - Local time: ${formatInTimeZone(new Date(startTime), user.timezone, 'HH:mm')} - ${formatInTimeZone(new Date(endTime), user.timezone, 'HH:mm')}`
+      
+    }
+    return `${user.username} (${user.timezone}) - Local time: ${format(new Date(startTime), 'HH:mm')} - ${format(new Date(endTime), 'HH:mm')}`;
+  }
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-xl font-bold mb-4">New Meeting</h2>
+      <div className="bg-white p-6 rounded-lg w-97">
+        <h2 className="text-xl font-bold mb-4 text-center text-black">New Meeting</h2>
         <input
           type="text"
           value={title}
@@ -70,7 +97,9 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
         >
           {availableUsers.map(user => (
             <option key={user.id} value={user.id}>
-              {user.username} ({user.timezone}) - Local time: {formatTimeForUser(startTime, user.timezone)}
+              {
+                convertTimeIfDifferentTimeZone(user, userTimezone)
+              }
             </option>
           ))}
         </select>

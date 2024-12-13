@@ -1,4 +1,5 @@
 import { toZonedTime, formatInTimeZone } from 'date-fns-tz'
+import { DateTime } from 'luxon';
 
 export function convertToTimezone(date: Date, timezone: string): Date {
   return toZonedTime(date, timezone)
@@ -20,4 +21,27 @@ export function validateMeetingTime(
   const [endHour] = workingHours.endTime.split(':').map(Number);
 
   return meetingHour >= startHour && meetingHour < endHour;
+}
+
+export function isWithinWorkingHours(
+  startTime: Date,
+  endTime: Date,
+  timezone: string
+): { isValid: boolean; reason?: string } {
+  const localStart = DateTime.fromJSDate(startTime).setZone(timezone);
+  const localEnd = DateTime.fromJSDate(endTime).setZone(timezone);
+  
+  // Check if it's weekend
+  if (localStart.weekday > 5) {
+    return { 
+      isValid: false, 
+      reason: 'This meeting is scheduled for a weekend.' 
+    };
+  }
+
+  const startHour = localStart.hour;
+  const endHour = localEnd.hour;
+
+
+  return { isValid: true };
 }

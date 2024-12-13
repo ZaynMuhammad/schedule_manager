@@ -5,10 +5,10 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { email, username, password, timezone } = await request.json();
+    const { email, username, password, timezone, startTime, endTime } = await request.json();
 
     // Validate input
-    if (!email || !username || !password || !timezone) {
+    if (!email || !username || !password || !timezone || !startTime || !endTime) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -24,7 +24,9 @@ export async function POST(request: Request) {
         email,
         username,
         password: hashedPassword,
-        timezone,  // Save the timezone
+        timezone,
+        workingHoursStart: startTime,
+        workingHoursEnd: endTime
       })
       .returning();
 
