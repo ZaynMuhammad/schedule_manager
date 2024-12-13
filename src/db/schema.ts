@@ -8,17 +8,11 @@ import {
   import { sql } from 'drizzle-orm';
   
   export const users = pgTable('users', {
-    id: uuid('id').primaryKey().defaultRandom(),
-    email: varchar('email', { length: 255 }).unique().notNull(),
-    username: varchar('name', { length: 255 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').unique().notNull(),
+    username: text('username').unique().notNull(),
     password: text('password').notNull(),
-    timezone: varchar('timezone', { length: 50 }).default('UTC').notNull(),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    timezone: text('timezone').default('UTC'),
   });
   
   export const workingHours = pgTable('working_hours', {
@@ -32,29 +26,23 @@ import {
   });
   
   export const meetings = pgTable('meetings', {
-    id: uuid('id').primaryKey().defaultRandom(),
-    title: varchar('title', { length: 255 }).notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    title: text('title').notNull(),
     description: text('description'),
     startTime: timestamp('start_time').notNull(),
     endTime: timestamp('end_time').notNull(),
     organizerId: uuid('organizer_id')
-      .notNull()
-      .references(() => users.id),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
+      .references(() => users.id)
       .notNull(),
   });
   
   export const meetingParticipants = pgTable('meeting_participants', {
-    id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id),
+    id: uuid('id').defaultRandom().primaryKey(),
     meetingId: uuid('meeting_id')
-      .notNull()
-      .references(() => meetings.id),
-    status: varchar('status', { enum: ['accepted', 'pending', 'declined'] }).notNull(),
+      .references(() => meetings.id)
+      .notNull(),
+    userId: uuid('user_id')
+      .references(() => users.id)
+      .notNull(),
+    status: text('status').default('pending'), // 'pending', 'accepted', 'declined'
   });

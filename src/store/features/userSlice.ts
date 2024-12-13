@@ -3,14 +3,18 @@ import { User, UserId } from '@/business-logic/types'
 
 interface UserState {
   currentUser: User | null
+  token: string | null
   loading: boolean
   error: string | null
+  workingHours: { startTime: string; endTime: string }
 }
 
 const initialState: UserState = {
   currentUser: null,
+  token: null,
   loading: false,
-  error: null
+  error: null,
+  workingHours: { startTime: '09:00', endTime: '17:00' }
 }
 
 export const fetchUser = createAsyncThunk(
@@ -28,12 +32,15 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User>) => {
-      state.currentUser = action.payload
-      state.error = null
+    setUser: (state, action: PayloadAction<{ user: User; token: string }>) => {
+      state.currentUser = action.payload.user
+      state.token = action.payload.token
+      localStorage.setItem('token', action.payload.token)
     },
     clearUser: (state) => {
       state.currentUser = null
+      state.token = null
+      localStorage.removeItem('token')
     },
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload

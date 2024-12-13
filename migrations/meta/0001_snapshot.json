@@ -1,6 +1,6 @@
 {
-  "id": "b88baf65-b5e0-4e74-9a3c-8ffff14e0121",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "4bd24744-e9ab-4765-8ec9-88d3f0b0b2a4",
+  "prevId": "b88baf65-b5e0-4e74-9a3c-8ffff14e0121",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -15,33 +15,34 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "meeting_id": {
           "name": "meeting_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "status": {
-          "name": "status",
-          "type": "varchar",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pending'"
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "meeting_participants_user_id_users_id_fk": {
-          "name": "meeting_participants_user_id_users_id_fk",
+        "meeting_participants_meeting_id_meetings_id_fk": {
+          "name": "meeting_participants_meeting_id_meetings_id_fk",
           "tableFrom": "meeting_participants",
-          "tableTo": "users",
+          "tableTo": "meetings",
           "columnsFrom": [
-            "user_id"
+            "meeting_id"
           ],
           "columnsTo": [
             "id"
@@ -49,12 +50,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "meeting_participants_meeting_id_meetings_id_fk": {
-          "name": "meeting_participants_meeting_id_meetings_id_fk",
+        "meeting_participants_user_id_users_id_fk": {
+          "name": "meeting_participants_user_id_users_id_fk",
           "tableFrom": "meeting_participants",
-          "tableTo": "meetings",
+          "tableTo": "users",
           "columnsFrom": [
-            "meeting_id"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -82,7 +83,7 @@
         },
         "title": {
           "name": "title",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -109,20 +110,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {},
@@ -160,13 +147,13 @@
         },
         "email": {
           "name": "email",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "username": {
           "name": "username",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -178,24 +165,10 @@
         },
         "timezone": {
           "name": "timezone",
-          "type": "varchar(50)",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "'UTC'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {},
@@ -207,6 +180,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        },
+        "users_username_unique": {
+          "name": "users_username_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
           ]
         }
       },

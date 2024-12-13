@@ -13,12 +13,40 @@ interface MeetingsState {
   error: string | null
 }
 
+export const createMeeting = createAsyncThunk(
+  'meetings/createMeeting',
+  async (meeting: {
+    title: string;
+    startTime: Date;
+    endTime: Date;
+    participants: string[];
+  }) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/meetings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(meeting),
+    });
+    return response.json();
+  }
+)
+
 export const fetchMeetings = createAsyncThunk(
   'meetings/fetchMeetings',
   async () => {
-    const response = await fetch('/api/meetings')
-    if (!response.ok) throw new Error('Failed to fetch meetings')
-    return response.json()
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/meetings', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch meetings');
+    }
+    return response.json();
   }
 )
 
@@ -39,6 +67,9 @@ const meetingsSlice = createSlice({
         state.error = action.error.message || null
         state.loading = false
       })
+      .addCase(createMeeting.fulfilled, (state, action) => {
+        state.meetings.push(action.payload);
+      });
   }
 })
 
