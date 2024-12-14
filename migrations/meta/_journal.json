@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1734069906173,
-      "tag": "0000_next_payback",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1734104325522,
-      "tag": "0001_shiny_landau",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1734116356920,
-      "tag": "0002_fancy_unus",
+      "when": 1734171123729,
+      "tag": "0000_wonderful_darwin",
       "breakpoints": true
     }
   ]

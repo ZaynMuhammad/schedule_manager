@@ -1,1 +1,0 @@
-ALTER TABLE "meetings" ADD COLUMN "timezone" text NOT NULL;

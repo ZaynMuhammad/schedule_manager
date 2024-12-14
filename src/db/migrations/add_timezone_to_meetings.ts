@@ -1,16 +1,14 @@
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { pgTable, text } from 'drizzle-orm/pg-core';
+import { meetings } from '../schema';
 
 export async function up(db: any) {
-  await db.execute(sql`
-    ALTER TABLE meetings 
-    ADD COLUMN timezone text NOT NULL DEFAULT 'UTC';
-  `);
+  await db.schema.alterTable('meetings').addColumn(
+    'timezone',
+    text('timezone').notNull().default(sql`'America/New_York'`)
+  );
 }
 
 export async function down(db: any) {
-  await db.execute(sql`
-    ALTER TABLE meetings 
-    DROP COLUMN timezone;
-  `);
+  await db.schema.alterTable('meetings').dropColumn('timezone');
 } 

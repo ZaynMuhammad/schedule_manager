@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { isWithinWorkingHours } from '@/utils/timeValidation';
 import { convertTimeIfDifferentTimeZone } from '@/business-logic/timeZoneConversions';
+import { useAppSelector } from '@/store/hooks';
 
 interface User {
   id: string;
@@ -20,6 +21,7 @@ interface MeetingModalProps {
 }
 
 export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, endTime, userTimezone }: MeetingModalProps) {
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [title, setTitle] = useState('');
@@ -30,13 +32,14 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
     const fetchUsers = async () => {
       const response = await fetch('/api/users');
       if (response.ok) {
-        const users = await response.json();
-        setUsers(users);
+        const allUsers = await response.json();
+        const otherUsers = allUsers.filter(user => user.id !== currentUser?.id);
         
-        // Split users into available and unavailable
+        setUsers(otherUsers);
+        
         const available = [];
         const unavailable = [];
-        for (const user of users) {
+        for (const user of otherUsers) {
           if (isWithinWorkingHours(startTime, user, user.timezone).isValid) {
             available.push(user);
           } else {
@@ -51,7 +54,7 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
     if (isOpen) {
       fetchUsers();
     }
-  }, [isOpen, startTime]);
+  }, [isOpen, startTime, currentUser?.id]);
 
   const handleSubmit = async () => {
     // Check if any selected users are in the unavailable list
@@ -74,6 +77,8 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
   };
 
   if (!isOpen) return null;
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

@@ -35,10 +35,12 @@ export const meetings = pgTable('meetings', {
   description: text('description'),
   startTime: timestamp('start_time').notNull(),
   endTime: timestamp('end_time').notNull(),
-  timezone: text('timezone').notNull(),
+  timezone: text('timezone').notNull().default('America/New_York'),
   organizerId: uuid('organizer_id')
     .references(() => users.id)
     .notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
 });
 
 export const meetingParticipants = pgTable('meeting_participants', {
