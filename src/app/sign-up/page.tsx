@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { timezones } from '../../utils/timezones';
+import { timezones } from '@/utils/timezone-values';
 
 console.log('Timezones:', timezones);
 
@@ -67,6 +67,7 @@ export default function SignUpPage() {
     }
   };
 
+  // TODO: Turn this into a map
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 p-6">

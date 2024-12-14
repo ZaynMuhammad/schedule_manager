@@ -1,5 +1,4 @@
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { createUser } from '@/data-access/users';
 import { hash } from 'bcrypt';
 import { NextResponse } from 'next/server';
 
@@ -17,18 +16,14 @@ export async function POST(request: Request) {
 
     // Hash password
     const hashedPassword = await hash(password, 10);
-
-    // Create user
-    const [user] = await db.insert(users)
-      .values({
-        email,
-        username,
-        password: hashedPassword,
-        timezone,
-        workingHoursStart: startTime,
-        workingHoursEnd: endTime
-      })
-      .returning();
+    const user = await createUser({
+      email,
+      username,
+      password: hashedPassword,
+      timezone,
+      workingHoursStart: startTime,
+      workingHoursEnd: endTime
+    })
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {

@@ -62,6 +62,24 @@ export const fetchMeetings = createAsyncThunk(
   }
 )
 
+export const deleteMeeting = createAsyncThunk(
+  'meetings/delete',
+  async (meetingId: string) => {
+    const response = await fetch(`/api/meetings/${meetingId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete meeting');
+    }
+
+    return meetingId;
+  }
+);
+
 const meetingsSlice = createSlice({
   name: 'meetings',
   initialState: { meetings: [], loading: false, error: null } as MeetingsState,
@@ -81,6 +99,9 @@ const meetingsSlice = createSlice({
       })
       .addCase(createMeeting.fulfilled, (state, action) => {
         state.meetings.push(action.payload);
+      })
+      .addCase(deleteMeeting.fulfilled, (state, action) => {
+        state.meetings = state.meetings.filter(meeting => meeting.id !== action.payload);
       });
   }
 })

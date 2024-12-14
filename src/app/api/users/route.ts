@@ -1,17 +1,9 @@
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { getAllUsers } from '@/data-access/users';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const allUsers = await db.query.users.findMany({
-      columns: {
-        id: true,
-        username: true,
-        email: true,
-        timezone: true,
-      },
-    });
+    const allUsers = await getAllUsers();
 
     return NextResponse.json(allUsers);
   } catch (error) {

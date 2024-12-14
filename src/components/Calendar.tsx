@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchMeetings, createMeeting } from '@/store/features/meetingsSlice'
+import { fetchMeetings, createMeeting, deleteMeeting } from '@/store/features/meetingsSlice'
 import { Calendar as BigCalendar, dateFnsLocalizer, SlotInfo } from 'react-big-calendar'
 import { format as formatDate } from 'date-fns'
 import parse from 'date-fns/parse'
@@ -11,18 +11,14 @@ import getDay from 'date-fns/getDay'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import './Calendar.css'
 import MeetingModal from './MeetingModal'
-import { formatInTimeZone } from 'date-fns-tz'
 
-const locales = {
-  'en-US': require('date-fns/locale/en-US')
-}
 
 const localizer = dateFnsLocalizer({
   format: formatDate,
   parse,
   startOfWeek,
   getDay,
-  locales,
+  locales: ['en-US']
 })
 
 interface CalendarProps {
@@ -34,6 +30,7 @@ export default function CalendarView({ userTimezone }: CalendarProps) {
   const { meetings, loading } = useAppSelector((state) => state.meetings);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     dispatch(fetchMeetings());
@@ -64,6 +61,13 @@ export default function CalendarView({ userTimezone }: CalendarProps) {
     }
   };
 
+  const handleSelectEvent = (event: any) => {
+    const confirmed = window.confirm('Do you want to delete this meeting?');
+    if (confirmed) {
+      dispatch(deleteMeeting(event.id));
+    }
+  };
+
   const events = meetings.map(meeting => ({
     id: meeting.id,
     title: meeting.title,
@@ -86,11 +90,16 @@ export default function CalendarView({ userTimezone }: CalendarProps) {
         defaultView="week"
         selectable
         onSelectSlot={handleSelect}
+        onSelectEvent={handleSelectEvent}
+        date={currentDate}
+        onNavigate={date => setCurrentDate(date)}
         formats={{
           timeGutterFormat: (date: Date) => formatDate(date, 'HH:mm'),
           eventTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
             `${formatDate(start, 'HH:mm')} - ${formatDate(end, 'HH:mm')}`,
         }}
+        toolbar={true}
+        views={['week']}
       />
       {selectedSlot && (
         <MeetingModal

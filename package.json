@@ -6,6 +6,7 @@
     "create-db": "tsx src/generate/create-database.ts",
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/db/migrate.ts",
+    "setup-db": "tsx src/generate/create-database.ts && drizzle-kit generate && tsx src/db/migrate.ts",
     "dev": "NODE_ENV=development next dev --turbo",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production next start"
@@ -22,7 +23,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.38.2",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.5.0",
     "next": "14.2.20",

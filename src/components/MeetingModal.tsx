@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { validateMeetingTime } from '@/utils/timezone';
-import { format, formatInTimeZone } from 'date-fns-tz';
-import { DateTime } from 'luxon';
+import { isWithinWorkingHours } from '@/utils/timeValidation';
+import { convertTimeIfDifferentTimeZone } from '@/business-logic/timeZoneConversions';
 
 interface User {
   id: string;
@@ -25,6 +24,7 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [unavailableUsers, setUnavailableUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -33,11 +33,18 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
         const users = await response.json();
         setUsers(users);
         
-        // Filter users based on their working hours
-        const available = users.filter(user => 
-          validateMeetingTime(startTime, user.workingHours, user.timezone)
-        );
+        // Split users into available and unavailable
+        const available = [];
+        const unavailable = [];
+        for (const user of users) {
+          if (isWithinWorkingHours(startTime, user, user.timezone).isValid) {
+            available.push(user);
+          } else {
+            unavailable.push(user);
+          }
+        }
         setAvailableUsers(available);
+        setUnavailableUsers(unavailable);
       }
     };
 
@@ -46,35 +53,25 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
     }
   }, [isOpen, startTime]);
 
-  // Super hacky way to adjust the time for the user's timezone, but it works for now
-  function adjustTimeForEST(date: Date, timezone: string): Date {
-    const est = 'America/New_York';
-    // Get the offset difference between timezones
-    const estOffset = DateTime.now().setZone(est).offset;
-    const userOffset = DateTime.now().setZone(timezone).offset;
-    const diffMinutes = userOffset - estOffset;
-    
-    // Add or subtract the difference from EST time
-    // If user is ahead of EST, subtract the difference
-    // If user is behind EST, add the difference
-    return new Date(date.getTime() - (diffMinutes * 60 * 1000));
-  }
+  const handleSubmit = async () => {
+    // Check if any selected users are in the unavailable list
+    const selectedUnavailableUsers = unavailableUsers.filter(user => 
+      selectedUsers.includes(user.id)
+    );
 
-  function convertTimeIfDifferentTimeZone(user: User, timezone: string) {
-    if (timezone !== user.timezone) {
-        if (user.timezone === 'America/New_York' || user.timezone === 'America/Toronto') {
-            console.log("the timezone is", user.timezone);
-            const adjustedStart = adjustTimeForEST(new Date(startTime), userTimezone);
-            const adjustedEnd = adjustTimeForEST(new Date(endTime), userTimezone);
-            
-            return `${user.username} (${user.timezone}) - Local time: ${format(adjustedStart, 'HH:mm')} - ${format(adjustedEnd, 'HH:mm')}`
-            
-        }
-      return `${user.username} (${user.timezone}) - Local time: ${formatInTimeZone(new Date(startTime), user.timezone, 'HH:mm')} - ${formatInTimeZone(new Date(endTime), user.timezone, 'HH:mm')}`
+    if (selectedUnavailableUsers.length > 0) {
+      const userNames = selectedUnavailableUsers.map(user => user.username).join(', ');
+      const confirmed = window.confirm(
+        `This meeting is outside working hours for: ${userNames}.\nDo you want to schedule anyway?`
+      );
       
+      if (!confirmed) {
+        return;
+      }
     }
-    return `${user.username} (${user.timezone}) - Local time: ${format(new Date(startTime), 'HH:mm')} - ${format(new Date(endTime), 'HH:mm')}`;
-  }
+
+    onSubmit(title, selectedUsers);
+  };
 
   if (!isOpen) return null;
 
@@ -95,10 +92,10 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
           onChange={(e) => setSelectedUsers(Array.from(e.target.selectedOptions, option => option.value))}
           className="w-full p-2 border rounded mb-4 h-40 text-black"
         >
-          {availableUsers.map(user => (
+          {users.map(user => (
             <option key={user.id} value={user.id}>
               {
-                convertTimeIfDifferentTimeZone(user, userTimezone)
+                convertTimeIfDifferentTimeZone(user, userTimezone, startTime, endTime, userTimezone)
               }
             </option>
           ))}
@@ -106,6 +103,7 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
         {users.length - availableUsers.length > 0 && (
           <p className="text-red-500 mb-4">
             {users.length - availableUsers.length} users are unavailable during this time.
+            Unavailable users: {unavailableUsers.map(user => user.username).join(', ')}
           </p>
         )}
         <div className="flex justify-end gap-2">
@@ -116,7 +114,7 @@ export default function MeetingModal({ isOpen, onClose, onSubmit, startTime, end
             Cancel
           </button>
           <button
-            onClick={() => onSubmit(title, selectedUsers)}
+            onClick={handleSubmit}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Create

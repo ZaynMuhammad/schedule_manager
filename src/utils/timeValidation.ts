@@ -2,27 +2,18 @@ import { DateTime } from 'luxon';
 
 export function isWithinWorkingHours(
   startTime: Date,
-  endTime: Date,
-  timezone: string
-): { isValid: boolean; outsideHours?: boolean; reason?: string } {
+  user: { workingHoursStart: string; workingHoursEnd: string },
+  timezone: string,
+): { isValid: boolean; reason?: string } {
   const localStart = DateTime.fromJSDate(startTime).setZone(timezone);
-  const localEnd = DateTime.fromJSDate(endTime).setZone(timezone);
+  const [userStartHour] = user.workingHoursStart.split(':').map(Number) || [9];
+  const [userEndHour] = user.workingHoursEnd.split(':').map(Number) || [17];
   
-  // Check if it's weekend
-  if (localStart.weekday > 6 || localEnd.weekday < 2) {
+  if (localStart.hour < userStartHour || localStart.hour > userEndHour) {
+    console.log("Meeting is outside working hours")
     return { 
       isValid: false, 
-      reason: 'Meetings cannot be scheduled on weekends' 
-    };
-  }
-
-  const startHour = localStart.hour;
-  const endHour = localEnd.hour;
-  
-  if (startHour < 9 || endHour > 17) {
-    return { 
-      isValid: false, 
-      reason: 'Meetings must be scheduled between 9 AM and 5 PM in your timezone' 
+      reason: 'Meeting is outside working hours' 
     };
   }
 

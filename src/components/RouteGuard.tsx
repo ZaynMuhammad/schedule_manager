@@ -10,7 +10,6 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Check if we have a token in localStorage that hasn't been loaded into Redux
       const storedToken = localStorage.getItem('token');
       
       if (!token && !storedToken) {

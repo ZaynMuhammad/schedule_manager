@@ -1,9 +1,8 @@
-import { db } from '@/db';
-import { users } from '@/db/schema';
 import { compare } from 'bcrypt';
 import { eq, or } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { createToken } from '@/utils/jwt';
+import { getUserByEmailOrUsername } from '@/data-access/users';
 
 export async function POST(request: Request) {
   try {
@@ -16,12 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.query.users.findFirst({
-      where: or(
-        eq(users.email, identifier),
-        eq(users.username, identifier)
-      ),
-    });
+    const user = await getUserByEmailOrUsername(identifier)
 
     if (!user) {
       return NextResponse.json(

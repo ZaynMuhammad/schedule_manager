@@ -42,6 +42,13 @@ export function isWithinWorkingHours(
   const startHour = localStart.hour;
   const endHour = localEnd.hour;
 
+  if (startHour < 9 || endHour > 17) {
+    return { 
+      isValid: false, 
+      reason: 'This meeting is outside working hours.' 
+    };
+  }
+
 
   return { isValid: true };
 }
